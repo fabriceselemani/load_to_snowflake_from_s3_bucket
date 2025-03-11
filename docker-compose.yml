@@ -1,0 +1,42 @@
+
+services:
+  postgres-db:
+    image: postgres:15
+    container_name: airflow-postgres-db
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    ports:
+      - "5430:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  airflow-web:
+    image: apache/airflow:2.9.0
+    container_name: airflow-web
+    depends_on:
+      - postgres-db
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres-db:5432/airflow
+    ports:
+      - "8087:8080"
+    command: >
+      bash -c "airflow db init && airflow webserver"
+    volumes:
+      - ./dags:/opt/airflow/dags
+
+  airflow-sched:
+    image: apache/airflow:2.9.0
+    container_name: airflow-scheduler
+    depends_on:
+      - airflow-web
+    environment:
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres-db:5432/airflow
+    command: airflow scheduler
+    volumes:
+      - ./dags:/opt/airflow/dags
+
+volumes:
+  postgres_data:

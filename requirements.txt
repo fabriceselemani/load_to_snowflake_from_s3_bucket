@@ -1,0 +1,11 @@
+requests
+pandas 
+psycopg2-binary
+apache-airflow-providers-postgres==4.1.0
+apache-airflow-providers-http==5.0.0
+python-dotenv
+boto3
+numpy
+sqlalchemy
+dotenv
+apache-airflow-providers-amazon
