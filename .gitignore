@@ -1,3 +1,5 @@
 myenv
 .getattributes
 .env
+logs
+airflow.cfg

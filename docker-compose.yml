@@ -1,12 +1,11 @@
-
 services:
   postgres-db:
     image: postgres:15
     container_name: airflow-postgres-db
     environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} 
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "5430:5432"
     volumes:
@@ -19,13 +18,19 @@ services:
       - postgres-db
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
-      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres-db:5432/airflow
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
     ports:
       - "8087:8080"
     command: >
       bash -c "airflow db init && airflow webserver"
     volumes:
       - ./dags:/opt/airflow/dags
+      - ./config\airflow.cfg:/opt/airflow/airflow.cfg
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      
+      
+    
 
   airflow-sched:
     image: apache/airflow:2.9.0
@@ -33,10 +38,15 @@ services:
     depends_on:
       - airflow-web
     environment:
-      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres-db:5432/airflow
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
     command: airflow scheduler
     volumes:
       - ./dags:/opt/airflow/dags
+      - ./config\airflow.cfg:/opt/airflow/airflow.cfg
+      - ./logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      
+      
 
 volumes:
   postgres_data:
